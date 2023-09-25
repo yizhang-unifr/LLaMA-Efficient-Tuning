@@ -27,10 +27,6 @@ class ModelArguments:
         default="main",
         metadata={"help": "The specific model version to use (can be a branch name, tag name or commit id)."}
     )
-    padding_side: Optional[Literal["left", "right"]] = field(
-        default="left",
-        metadata={"help": "The side on which the model should have padding applied."}
-    )
     quantization_bit: Optional[int] = field(
         default=None,
         metadata={"help": "The number of bits to quantize the model."}
@@ -46,6 +42,10 @@ class ModelArguments:
     rope_scaling: Optional[Literal["linear", "dynamic"]] = field(
         default=None,
         metadata={"help": "Adopt scaled rotary positional embeddings."}
+    )
+    flash_attn: Optional[bool] = field(
+        default=False,
+        metadata={"help": "Enable flash attention for faster training."}
     )
     checkpoint_dir: Optional[str] = field(
         default=None,
@@ -63,18 +63,10 @@ class ModelArguments:
         default=None,
         metadata={"help": "Auth token to log in with Hugging Face Hub."}
     )
-    compute_dtype: Optional[torch.dtype] = field(
-        default=None,
-        metadata={"help": "Used in quantization configs. Do not specify this argument manually."}
-    )
-    model_max_length: Optional[int] = field(
-        default=None,
-        metadata={"help": "Used in rope scaling. Do not specify this argument manually."}
-    )
 
     def __post_init__(self):
-        if self.compute_dtype is not None or self.model_max_length is not None:
-            raise ValueError("These arguments cannot be specified.")
+        self.compute_dtype = None
+        self.model_max_length = None
 
         if self.checkpoint_dir is not None: # support merging multiple lora weights
             self.checkpoint_dir = [cd.strip() for cd in self.checkpoint_dir.split(",")]
